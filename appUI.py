@@ -7,7 +7,7 @@ from keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 import xgboost as xgb
 import numpy as np
-from utils import (
+from module.utils import (
     handle_data,
     handle_data_roc,
     handle_data_xgboost,
