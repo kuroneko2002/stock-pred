@@ -62,8 +62,8 @@ models["ada_roc"]["xgb"].load_model("models/xgbADA-USD-roc.json")
 
 # Process data
 def process_data(currency, name):
-    [_, _, X_test, valid_data, scaler] = handle_data(currency)
-    [_, _, X_xgb_test, _, _] = handle_data_xgboost(currency)
+    [_, _, X_test, valid_data, scaler, df] = handle_data(currency)
+    [_, _, X_xgb_test, _, _, _] = handle_data_xgboost(currency)
 
     lstm_pred = models[name]["lstm"].predict(X_test)
     lstm_pred = scaler.inverse_transform(lstm_pred)
@@ -79,12 +79,12 @@ def process_data(currency, name):
     valid_data["Predictions-rnn"] = rnn_pred
     valid_data["Predictions-xgb"] = xgb_pred
 
-    return valid_data
+    return valid_data, df
 
 
 def process_data_roc(currency, name):
-    [_, _, X_test, valid_data, scaler] = handle_data_roc(currency)
-    [_, _, X_xgb_test, _, _] = handle_data_roc_xgboost(currency)
+    [_, _, X_test, valid_data, scaler, df] = handle_data_roc(currency)
+    [_, _, X_xgb_test, _, _, _] = handle_data_roc_xgboost(currency)
 
     lstm_pred = models[name]["lstm"].predict(X_test)
     lstm_pred = scaler.inverse_transform(lstm_pred)
@@ -111,7 +111,7 @@ def process_data_roc(currency, name):
     B = xgb_pred * A
     valid_data["Predictions-xgb"] = valid_data.shift(1)["Close"] + B
 
-    return valid_data
+    return valid_data, df
 
 
 # Prepare data for plotting
@@ -255,29 +255,40 @@ app.layout = html.Div(
 
 
 def get_figure(dropdown_value, currency, model_type, title):
-    valid_data = data[currency]
-    valid_data_roc = data[currency + "_roc"]
+    valid_data,df = data[currency]
+    valid_data_roc,_ = data[currency + "_roc"]
     selected_data = valid_data if dropdown_value == "Closed" else valid_data_roc
 
-    actual_close = go.Scatter(
-        x=selected_data.index,
-        y=selected_data["Close"],
-        mode="lines",
-        opacity=0.7,
-        name="Actual Close",
-        textposition="bottom center",
+    actual_close = go.Candlestick(
+        x=df.index,
+        open=df["Open"],
+        high=df["High"],
+        low=df["Low"],
+        close=df["Close"],
+        name="Actual",
     )
     predicted_close = go.Scatter(
         x=selected_data.index,
         y=selected_data[f"Predictions-{model_type}"],
-        mode="lines",
-        opacity=0.7,
-        name=f"Predict Close",
-        textposition="bottom center",
+        name="Predicted",
+        mode="text",
+        text="-",
+        textfont=dict(size=25, color="blue"),
+        legendgroup="predicted",
+        showlegend=False
+    )
+    predicted_close_marker = go.Scatter(
+        x=[None],  # No data points to display
+        y=[None],
+        mode="markers",  # Only markers
+        marker=dict(color="blue", symbol="diamond"),
+        name="Predicted",
+        legendgroup="predicted",  # Same group as the text trace
+        showlegend=True  # Show this trace in the legend
     )
 
     figure = {
-        "data": [actual_close, predicted_close],
+        "data": [actual_close, predicted_close, predicted_close_marker],
         "layout": go.Layout(
             colorway=["#5E0DAC", "#FF4F00", "#375CB1", "#FF7400", "#FFF400", "#FF0056"],
             height=600,
