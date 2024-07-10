@@ -71,6 +71,7 @@ def updateAllTicket(period):
 def preprocess_data(name):
     # Load and preprocess data
     df = pd.read_csv(f"{name}.csv", parse_dates=["Date"], index_col="Date")
+    original_df = df.copy()
     df.drop(columns=["Open", "High", "Low"], inplace=True)  # Keep Date and Close column
 
     # Split the dataset into training and validation sets
@@ -99,19 +100,19 @@ def preprocess_data(name):
     x_train_data, y_train_data, X_test = map(
         np.array, [x_train_data, y_train_data, X_test]
     )
-
-    return [x_train_data, y_train_data, X_test, valid_data, scaler]
+    original_df = original_df.iloc[train_data_length + 1 :]
+    return [x_train_data, y_train_data, X_test, valid_data, scaler, original_df]
 
 
 # handle data for LSTM and RNN
 def handle_data(name):
-    [x_train_data, y_train_data, X_test, valid_data, scaler] = preprocess_data(name)
+    [x_train_data, y_train_data, X_test, valid_data, scaler, original_df] = preprocess_data(name)
     x_train_data = np.reshape(
         x_train_data, (x_train_data.shape[0], x_train_data.shape[1], 1)
     )
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
-    return [x_train_data, y_train_data, X_test, valid_data, scaler]
+    return [x_train_data, y_train_data, X_test, valid_data, scaler, original_df]
 
 
 # handle data for XGBoost
@@ -123,6 +124,7 @@ def preprocess_data_roc(name):
     df = pd.read_csv(name + ".csv")
     df["Date"] = pd.to_datetime(df["Date"], format="%Y-%m-%d")
     df.set_index("Date", inplace=True)
+    original_df = df.copy()
     df.drop(columns=["Open", "High", "Low"], inplace=True)
     df_copy = df
     df = df.pct_change(periods=1).dropna()
@@ -155,16 +157,17 @@ def preprocess_data_roc(name):
     next_day = valid_data.index[-1] + pd.DateOffset(days=1)
     valid_data.loc[next_day] = np.nan  # Append a row for the next day with NaN values
 
-    return [x_train_data, y_train_data, X_test, valid_data, scaler]
+    original_df = original_df.iloc[train_data_length + 1 :]
+    return [x_train_data, y_train_data, X_test, valid_data, scaler, original_df]
 
 
 def handle_data_roc(name):
-    [x_train_data, y_train_data, X_test, valid_data, scaler] = preprocess_data_roc(name)
+    [x_train_data, y_train_data, X_test, valid_data, scaler, original_df] = preprocess_data_roc(name)
     x_train_data = np.reshape(
         x_train_data, (x_train_data.shape[0], x_train_data.shape[1], 1)
     )
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
-    return [x_train_data, y_train_data, X_test, valid_data, scaler]
+    return [x_train_data, y_train_data, X_test, valid_data, scaler, original_df]
 
 
 def handle_data_roc_xgboost(name):
