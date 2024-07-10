@@ -135,11 +135,11 @@ def train_models():
     for crypto in cryptos:
         for data_type in data_types:
             if data_type == "":
-                x_train_data, y_train_data, X_test, valid_data, scaler = handle_data(
+                x_train_data, y_train_data, X_test, valid_data, scaler, _ = handle_data(
                     crypto
                 )
             else:
-                x_train_data, y_train_data, X_test, valid_data, scaler = (
+                x_train_data, y_train_data, X_test, valid_data, scaler, _ = (
                     handle_data_roc(crypto)
                 )
 
@@ -150,11 +150,11 @@ def train_models():
                     model_func(x_train_data, y_train_data, f"{crypto}-{data_type}")
 
             if data_type == "":
-                x_train_data, y_train_data, X_test, valid_data, scaler = (
+                x_train_data, y_train_data, X_test, valid_data, scaler, _ = (
                     handle_data_xgboost(crypto)
                 )
             else:
-                x_train_data, y_train_data, X_test, valid_data, scaler = (
+                x_train_data, y_train_data, X_test, valid_data, scaler, _ = (
                     handle_data_roc_xgboost(crypto)
                 )
 
