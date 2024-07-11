@@ -8,6 +8,15 @@ from sklearn.preprocessing import MinMaxScaler
 
 # Create new CSV file with the stock data
 def get_csv(coin_type):
+    """
+    Retrieves historical stock data for a given coin type and saves it as a CSV file.
+
+    Args:
+        coin_type (str): The type of coin for which to retrieve the data.
+
+    Returns:
+        pandas.DataFrame: The historical stock data as a pandas DataFrame.
+    """
     ticket = yf.Ticker(coin_type)
     hist = ticket.history(period="5y")
     hist.drop(columns=["Volume", "Dividends", "Stock Splits"], inplace=True)
@@ -25,6 +34,18 @@ def get_csv(coin_type):
 
 
 def get_all_csv():
+    """
+    Retrieves CSV files for multiple coin types.
+
+    This function iterates over a list of coin types and calls the `get_csv` function
+    to retrieve the CSV file for each coin type.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     coin_types = ["BTC-USD", "ADA-USD", "ETH-USD"]
     for coin_type in coin_types:
         get_csv(coin_type)
@@ -32,6 +53,17 @@ def get_all_csv():
 
 # get new candles data
 def getNewTicketData(name, period):
+    """
+    Retrieves new stock data for the given stock name and period, and appends it to a CSV file.
+
+    Args:
+        name (str): The name of the stock.
+        period (str): The time period for which to retrieve the stock data.
+
+    Returns:
+        None: If the first date of the retrieved data is the same as the last date in the CSV file.
+
+    """
     # get stock data from yfinance
     ticket = yf.Ticker(name)
     hist = ticket.history(period)
@@ -69,6 +101,22 @@ def updateAllTicket(period):
 
 ### transform data to be used in the model
 def preprocess_data(name):
+    """
+    Preprocesses the stock data for training a predictive model.
+
+    Args:
+        name (str): The name of the stock.
+
+    Returns:
+        list: A list containing the preprocessed data and other related information.
+            - x_train_data (numpy.ndarray): The input training data.
+            - y_train_data (numpy.ndarray): The target training data.
+            - X_test (numpy.ndarray): The test data.
+            - valid_data (pandas.DataFrame): The validation data.
+            - scaler (sklearn.preprocessing.MinMaxScaler): The scaler used for scaling the data.
+            - original_df (pandas.DataFrame): The original dataframe.
+
+    """
     # Load and preprocess data
     df = pd.read_csv(f"{name}.csv", parse_dates=["Date"], index_col="Date")
     original_df = df.copy()
@@ -106,6 +154,22 @@ def preprocess_data(name):
 
 # handle data for LSTM and RNN
 def handle_data(name):
+    """
+    Preprocesses the data for stock prediction.
+
+    Args:
+        name (str): The name of the stock.
+
+    Returns:
+        list: A list containing the preprocessed data:
+            - x_train_data (numpy.ndarray): The reshaped training data.
+            - y_train_data (numpy.ndarray): The training labels.
+            - X_test (numpy.ndarray): The reshaped test data.
+            - valid_data (numpy.ndarray): The validation data.
+            - scaler (object): The scaler used for normalization.
+            - original_df (pandas.DataFrame): The original dataframe.
+
+    """
     [x_train_data, y_train_data, X_test, valid_data, scaler, original_df] = preprocess_data(name)
     x_train_data = np.reshape(
         x_train_data, (x_train_data.shape[0], x_train_data.shape[1], 1)
@@ -121,6 +185,21 @@ def handle_data_xgboost(name):
 
 
 def preprocess_data_roc(name):
+    """
+    Preprocesses the data for rate of change (ROC) analysis.
+
+    Args:
+        name (str): The name of the CSV file containing the data.
+
+    Returns:
+        list: A list containing the preprocessed data:
+            - x_train_data (numpy.ndarray): The input training data.
+            - y_train_data (numpy.ndarray): The target training data.
+            - X_test (numpy.ndarray): The input test data.
+            - valid_data (pandas.DataFrame): The validation data.
+            - scaler (sklearn.preprocessing.MinMaxScaler): The scaler used for normalization.
+            - original_df (pandas.DataFrame): The original data before preprocessing.
+    """
     df = pd.read_csv(name + ".csv")
     df["Date"] = pd.to_datetime(df["Date"], format="%Y-%m-%d")
     df.set_index("Date", inplace=True)
