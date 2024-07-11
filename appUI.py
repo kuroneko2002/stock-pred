@@ -62,6 +62,16 @@ models["ada_roc"]["xgb"].load_model("models/xgbADA-USD-roc.json")
 
 # Process data
 def process_data(currency, name):
+    """
+    Process the data for the given currency and model name.
+
+    Args:
+        currency (str): The currency to process the data for.
+        name (str): The name of the model.
+
+    Returns:
+        tuple: A tuple containing the processed data and the original data.
+    """
     [_, _, X_test, valid_data, scaler, df] = handle_data(currency)
     [_, _, X_xgb_test, _, _, _] = handle_data_xgboost(currency)
 
@@ -83,6 +93,17 @@ def process_data(currency, name):
 
 
 def process_data_roc(currency, name):
+    """
+    Process the data for rate of change (ROC) prediction.
+
+    Args:
+        currency (str): The currency to process the data for.
+        name (str): The name of the model to use for prediction.
+
+    Returns:
+        tuple: A tuple containing the processed data for ROC prediction and the original data.
+
+    """
     [_, _, X_test, valid_data, scaler, df] = handle_data_roc(currency)
     [_, _, X_xgb_test, _, _, _] = handle_data_roc_xgboost(currency)
 
@@ -255,8 +276,21 @@ app.layout = html.Div(
 
 
 def get_figure(dropdown_value, currency, model_type, title):
-    valid_data,df = data[currency]
-    valid_data_roc,_ = data[currency + "_roc"]
+    """
+    Generate a figure object for plotting candlestick and predicted close data.
+
+    Parameters:
+    - dropdown_value (str): The selected dropdown value ("Closed" or "ROC").
+    - currency (str): The currency for which the data is fetched.
+    - model_type (str): The type of model used for predictions.
+    - title (str): The title of the figure.
+
+    Returns:
+    - figure (dict): A dictionary containing the data and layout for the figure.
+    """
+
+    valid_data, df = data[currency]
+    valid_data_roc, _ = data[currency + "_roc"]
     selected_data = valid_data if dropdown_value == "Closed" else valid_data_roc
 
     actual_close = go.Candlestick(
