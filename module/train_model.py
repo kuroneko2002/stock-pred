@@ -127,6 +127,18 @@ def train_XGBoost(
 
 
 def train_models():
+    """
+    Train models for different cryptocurrencies and data types.
+
+    This function iterates over a list of cryptocurrencies and data types, and trains models using the specified data.
+    It calls different model training functions based on the data type and cryptocurrency.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     updateAllTicket(period="1d")
     cryptos = ["BTC-USD", "ETH-USD", "ADA-USD"]
     data_types = ["", "roc"]
